@@ -1,0 +1,59 @@
+openapi: 3.1.0
+info:
+  title: Shield Billing Service
+  version: 0.1.0
+  description: Synthetic callable fixture; no HTTP adapter is deployed.
+paths:
+  /policies/{policy_id}/premium-schedule:
+    get:
+      operationId: premium_schedule
+      parameters:
+        - name: policy_id
+          in: path
+          required: true
+          schema: {type: string, minLength: 1}
+      responses:
+        "200":
+          description: Annual premium schedule from the policy service.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [policy_id, annual_premium_cents, currency]
+                properties:
+                  policy_id: {type: string, minLength: 1}
+                  annual_premium_cents: {type: integer, minimum: 1}
+                  currency: {const: USD}
+        "404":
+          description: Policy not found.
+  /payouts:
+    post:
+      operationId: create_payout
+      description: Idempotent by claim_id within the lifetime of the stub instance.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [claim_id, amount_cents]
+              properties:
+                claim_id: {type: string, minLength: 1}
+                amount_cents: {type: integer, minimum: 1}
+      responses:
+        "200":
+          description: Created or previously recorded synthetic payout.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [payout_id, claim_id, amount_cents, currency]
+                properties:
+                  payout_id: {type: string, minLength: 1}
+                  claim_id: {type: string, minLength: 1}
+                  amount_cents: {type: integer, minimum: 1}
+                  currency: {const: USD}
+        "400":
+          description: Invalid claim ID or amount.
+        "409":
+          description: Claim already has a payout for a different amount.
